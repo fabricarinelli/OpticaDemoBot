@@ -2,6 +2,9 @@ from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, F
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import enum
+
+from sqlalchemy.sql.sqltypes import Text
+
 from app.core.database import Base
 
 # Enums para consistencia
@@ -16,16 +19,27 @@ class OrderStatus(str, enum.Enum):
 
 class Client(Base):
     __tablename__ = "clients"
-    
+
     id = Column(Integer, primary_key=True, index=True)
-    instagram_id = Column(String, unique=True, index=True)
-    name = Column(String, nullable=True)
-    medical_insurance = Column(String, nullable=True)
-    is_paused = Column(Boolean, default=False)
+    instagram_id = Column(String, unique=True, index=True, nullable=False)
+    name = Column(String, nullable=True) # Lo podemos sacar del perfil de IG
+    phone = Column(String, nullable=True)
+    email = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    appointments = relationship("Appointment", back_populates="client")
-    orders = relationship("Order", back_populates="client")
+    # Relación con los mensajes
+    messages = relationship("Message", back_populates="client")
+
+class Message(Base):
+    __tablename__ = "messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    client_id = Column(Integer, ForeignKey("clients.id"))
+    role = Column(String) # "user" o "assistant"
+    content = Column(Text) # El texto del mensaje
+    timestamp = Column(DateTime(timezone=True), server_default=func.now())
+
+    client = relationship("Client", back_populates="messages")
 
 class Professional(Base):
     __tablename__ = "professionals"
@@ -33,7 +47,7 @@ class Professional(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String)
     type = Column(Enum(ProfessionalType))
-    
+    calendar_id = Column(String, unique=True, nullable=False)
     appointments = relationship("Appointment", back_populates="professional")
 
 class Appointment(Base):

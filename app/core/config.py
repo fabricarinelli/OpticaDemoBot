@@ -1,5 +1,6 @@
 # app/core/config.py
-from pydantic_settings import BaseSettings
+import os
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
 
 class Settings(BaseSettings):
@@ -10,19 +11,19 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str
 
-    # WhatsApp (Meta)
+    # Meta (Instagram)
     INSTAGRAM_TOKEN: str
     INSTAGRAM_ID: str
     INSTAGRAM_VERIFY_TOKEN: str
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
 
     # Google (Gemini & Calendar)
     GEMINI_API_KEY: str
+    GOOGLE_APPLICATION_CREDENTIALS: str
+    ADMIN_EMAIL: str
 
     # Mercado Pago
     MP_ACCESS_TOKEN: str
+    MP_PUBLIC_KEY: str
 
     class Config:
         env_file = ".env"
@@ -32,6 +33,5 @@ class Settings(BaseSettings):
 @lru_cache()
 def get_settings():
     return Settings()
-
 
 settings = get_settings()
