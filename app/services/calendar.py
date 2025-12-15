@@ -1,14 +1,15 @@
 # app/services/tools.py
 import datetime
 import os.path
-from typing import List, Optional, Tuple
+from typing import List, Optional
 from zoneinfo import ZoneInfo
 
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from sqlalchemy.orm import Session
 from app.core.config import settings
-from app.models.models import Professional, ProfessionalType
+from app.services import crud
+from app.models.models import ProfessionalType
 
 # --- CONFIGURACIÓN ---
 SCOPES = ['https://www.googleapis.com/auth/calendar']
@@ -166,10 +167,7 @@ def consultar_disponibilidad(
     print(f"🧠 Motor v2: Buscando {tipo_profesional}...")
 
     # Buscar Profesionales
-    query = db.query(Professional).filter(Professional.type == tipo_profesional)
-    if nombre_profesional:
-        query = query.filter(Professional.name.ilike(f"%{nombre_profesional}%"))
-    profesionales = query.all()
+    profesionales = crud.professional.get_by_type_and_name(db=db, type_prof=tipo_profesional, name_filter=nombre_profesional)
 
     if not profesionales: return "No hay profesionales cargados."
 

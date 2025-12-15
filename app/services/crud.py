@@ -93,3 +93,15 @@ class CRUDOrder(CRUDBase):
         db.commit()
         db.refresh(order)
         return order
+
+class CRUDProfessional(CRUDBase):
+    def get_by_type_and_name(self, db: Session, type_prof: str, name_filter: str = None) -> List[Professional]:
+        query = db.query(self.model).filter(self.model.type == type_prof)
+        if name_filter:
+            query = query.filter(self.model.name.ilike(f"%{name_filter}%"))
+        return query.all()
+
+professional = CRUDProfessional(Professional)
+product = CRUDProduct(Product)
+order = CRUDOrder(Order)
+client = CRUDBase(Client)
