@@ -1,17 +1,17 @@
-# init_db.py
+# app/scripts/init_db.py
 from app.core.database import Base, engine, SessionLocal
 from app.models.models import Professional, Product, ProfessionalType
 
-# 1. Crear Tablas
+# 1. Crear Tablas (si no existen)
 print("Creando tablas en la base de datos...")
 Base.metadata.create_all(bind=engine)
 
-# 2. Datos de Prueba (Seed)
 db = SessionLocal()
 
-# Verificar si ya existen datos
+# --- PROFESIONALES ---
+# Verificamos si ya existen profesionales para no duplicarlos
 if not db.query(Professional).first():
-    print("Insertando datos de prueba...")
+    print("Insertando Profesionales...")
 
     p1 = Professional(
         name="Lic. Juan (Óptico)",
@@ -36,16 +36,69 @@ if not db.query(Professional).first():
         calendar_id="01044e93d895c54a1f14a1a00f85b4518582a15ba09a7c16efcc1facd8d1b374@group.calendar.google.com"
     )
 
-    # Productos (Según SRS RF-2.1)
-    prod1 = Product(name="Liquido Renu 500ml", price=15000, category="liquidos", description="Solución multipropósito")
-    prod2 = Product(name="Anteojos de Sol RayBan", price=120000, category="anteojos",
-                    description="Modelo Aviador Clásico")
-    prod3 = Product(name="Estuche Rígido", price=5000, category="accesorios", description="Protección para tus lentes")
-
-    db.add_all([p1, p2, p3, p4, prod1, prod2, prod3])
+    db.add_all([p1, p2, p3, p4])
     db.commit()
-    print("¡Datos insertados correctamente!")
+    print("✅ Profesionales insertados.")
 else:
-    print("La base de datos ya tiene datos.")
+    print("ℹ️ Los profesionales ya estaban cargados.")
+
+# --- PRODUCTOS ---
+# Si hay pocos productos (menos de 5), asumimos que falta el catálogo completo y lo cargamos.
+if db.query(Product).count() < 5:
+    print("Insertando Catálogo Extendido de Productos...")
+
+    products_list = [
+        # --- LÍQUIDOS Y SOLUCIONES ---
+        Product(name="Liquido Renu 500ml", price=15000, category="liquidos",
+                description="Solución multipropósito para lentes blandas"),
+        Product(name="Liquido Opti-Free Express 355ml", price=18500, category="liquidos",
+                description="Desinfección prolongada Alcon"),
+        Product(name="Biotrue 300ml", price=22000, category="liquidos",
+                description="Inspirado en la biología de tus ojos"),
+        Product(name="Solución Salina 500ml", price=8000, category="liquidos",
+                description="Para enjuague de lentes de contacto"),
+
+        # --- ANTEOJOS DE SOL ---
+        Product(name="RayBan Aviator Classic", price=180000, category="anteojos_sol",
+                description="G-15 Lens, Marco Dorado"),
+        Product(name="RayBan Wayfarer", price=175000, category="anteojos_sol", description="Negro Clásico, Polarizado"),
+        Product(name="Oakley Holbrook", price=210000, category="anteojos_sol",
+                description="Matte Black, Prizm Sapphire"),
+        Product(name="Vulk The Guardian", price=120000, category="anteojos_sol",
+                description="Estilo urbano, protección UV400"),
+        Product(name="Rusty Vicio", price=95000, category="anteojos_sol", description="Diseño envolvente deportivo"),
+
+        # --- ARMAZONES RECETA ---
+        Product(name="Armazón Vulk Harry", price=85000, category="armazones",
+                description="Acetato negro, formato redondo"),
+        Product(name="Armazón Reef Titanio", price=110000, category="armazones",
+                description="Ultraliviano, rectangular"),
+        Product(name="Armazón Infinit Love", price=92000, category="armazones",
+                description="Cat-eye moderno, varios colores"),
+
+        # --- LENTES DE CONTACTO (Cajas) ---
+        Product(name="Acuvue Oasys (Caja x6)", price=65000, category="lentes_contacto",
+                description="Reemplazo quincenal, con Hydraclear"),
+        Product(name="Air Optix HydraGlyde (Caja x6)", price=68000, category="lentes_contacto",
+                description="Reemplazo mensual, alta oxigenación"),
+        Product(name="Dailies Total 1 (Caja x30)", price=95000, category="lentes_contacto",
+                description="Descartables diarios, comodidad superior"),
+
+        # --- ACCESORIOS ---
+        Product(name="Estuche Rígido Premium", price=8500, category="accesorios",
+                description="Interior afelpado, cierre magnético"),
+        Product(name="Gamuza Microfibra Grande", price=3000, category="accesorios",
+                description="Limpieza sin rayas 20x20cm"),
+        Product(name="Spray Limpiador y Antiempañante", price=6500, category="accesorios",
+                description="Spray 30ml para cristales"),
+        Product(name="Cadena Sujetadora Metal", price=4500, category="accesorios",
+                description="Cadena fina dorada o plateada"),
+    ]
+
+    db.add_all(products_list)
+    db.commit()
+    print("✅ ¡Catálogo de productos cargado exitosamente!")
+else:
+    print("ℹ️ El catálogo de productos ya contiene datos.")
 
 db.close()

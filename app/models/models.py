@@ -22,13 +22,13 @@ class Client(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     instagram_id = Column(String, unique=True, index=True, nullable=False)
-    name = Column(String, nullable=True) # Lo podemos sacar del perfil de IG
+    name = Column(String, nullable=True)
     phone = Column(String, nullable=True)
     email = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-
-    # Relación con los mensajes
     messages = relationship("Message", back_populates="client")
+    appointments = relationship("Appointment", back_populates="client")
+    orders = relationship("Order", back_populates="client")
 
 class Message(Base):
     __tablename__ = "messages"
@@ -59,12 +59,8 @@ class Appointment(Base):
     
     start_time = Column(DateTime, index=True)
     calendar_event_id = Column(String, nullable=True)
-    status = Column(String, default="confirmed") 
-    
+    status = Column(String, default="confirmed")
     client = relationship("Client", back_populates="appointments")
-    
-    # --- CORRECCIÓN AQUÍ ABAJO ---
-    # Antes decía back_populates="professional", ahora apunta a la LISTA "appointments"
     professional = relationship("Professional", back_populates="appointments")
 
 class Product(Base):

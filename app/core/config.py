@@ -25,9 +25,14 @@ class Settings(BaseSettings):
     MP_ACCESS_TOKEN: str
     MP_PUBLIC_KEY: str
 
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
+    CATALOG_IMAGE_URL: str
+
+    model_config = SettingsConfigDict(
+        env_file="/home/fabri/Escritorio/optica-bot/.env",  # <-- Le pasamos la ruta absoluta
+        env_file_encoding='utf-8',
+        case_sensitive=True,
+        extra='ignore'  # Si hay variables de más en el .env, no explota
+    )
 
 
 @lru_cache()

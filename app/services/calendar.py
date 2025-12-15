@@ -236,7 +236,7 @@ def agendar_evento(calendar_id: str, start_time: str, client_name: str, client_e
 
     # Convertimos el string ISO a objeto datetime para calcular el final
     # Asumimos que la duración del turno es 1 hora (puedes cambiarlo)
-    dt_start = datetime.fromisoformat(start_time)
+    dt_start = datetime.datetime.fromisoformat(start_time)
     dt_end = dt_start + datetime.timedelta(hours=1)
 
     event_body = {
@@ -252,10 +252,6 @@ def agendar_evento(calendar_id: str, start_time: str, client_name: str, client_e
         },
     }
 
-    # Si tenemos email, lo invitamos
-    if client_email:
-        event_body['attendees'] = [{'email': client_email}]
-
     try:
         event = service.events().insert(calendarId=calendar_id, body=event_body).execute()
         return {
@@ -266,4 +262,29 @@ def agendar_evento(calendar_id: str, start_time: str, client_name: str, client_e
         }
     except Exception as e:
         print(f"Error al crear evento: {e}")
+        return {"status": "error", "message": str(e)}
+
+def cancelar_evento(calendar_id: str, event_id: str) -> dict:
+    """
+    Elimina un evento de Google Calendar liberando el horario.
+    Args:
+        calendar_id: El ID del calendario (email del profesional).
+        event_id: El ID del evento que guardamos en la base de datos.
+    """
+    service = get_calendar_service()
+
+    try:
+        # Ejecutamos la orden de eliminación
+        service.events().delete(calendarId=calendar_id, eventId=event_id).execute()
+
+        return {
+            "status": "success",
+            "message": "Turno eliminado de Google Calendar correctamente."
+        }
+    except Exception as e:
+        print(f"Error al cancelar evento en Google: {e}")
+        # Si el error es 410 (Gone) o 404 (Not Found), asumimos que ya estaba borrado
+        if "404" in str(e) or "410" in str(e):
+            return {"status": "success", "message": "El evento ya no existía en Google."}
+
         return {"status": "error", "message": str(e)}
