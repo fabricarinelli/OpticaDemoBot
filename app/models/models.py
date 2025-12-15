@@ -79,7 +79,8 @@ class Order(Base):
     client_id = Column(Integer, ForeignKey("clients.id"))
     status = Column(Enum(OrderStatus), default=OrderStatus.PENDING)
     total_amount = Column(Float, default=0.0)
-    payment_link = Column(String, nullable=True)
+    payment_link = Column(String, nullable=True, index=True)
+    mp_reference_id = Column(String, unique=True, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     client = relationship("Client", back_populates="orders")
