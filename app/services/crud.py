@@ -100,8 +100,6 @@ def get_chat_history(db: Session, model_mensaje: Type, cliente_id: int, limit: i
         .limit(limit) \
         .all()
 
-    # 2. Los damos vuelta para que queden cronológicos (Viejo -> Nuevo)
-    # y los convertimos al formato simple para la IA (si hace falta)
     history = mensajes_desc[::-1]
     return history
 
