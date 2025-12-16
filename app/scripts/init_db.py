@@ -15,147 +15,205 @@ from app.models.models import (
 
 
 def init_db():
-    print("🔄 Reiniciando Base de Datos...")
+    print("🔄 INICIANDO RESET DE BASE DE DATOS...")
 
-    # Opcional: Eliminar tablas viejas para empezar limpio
+    # 1. Limpieza y Re-creación de Tablas
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
 
     db = SessionLocal()
 
-    # ==========================================
-    # 1. CARGA DEL MENÚ LOMITERÍA
-    # ==========================================
-    print("🍔 Cargando Menú de Lomitería...")
+    try:
+        # ==========================================
+        # 1. CARGA DEL MENÚ LOMITERÍA (BIEN POBLADO)
+        # ==========================================
+        print("🍔 Cargando Menú Extendido...")
 
-    menu_items = [
-        # --- LOMITOS ---
-        MenuLomiteria(nombre="Lomo Completo", precio=14000,
-                      descripcion="Pan casero, bife de lomo, huevo, queso, jamón, lechuga, tomate y mayonesa de la casa. Sale con papas."),
-        MenuLomiteria(nombre="Lomo Árabe", precio=13500,
-                      descripcion="Pan árabe tostado, carne vacuna en tiritas, tomate, lechuga, salsa criolla y mayonesa."),
-        MenuLomiteria(nombre="Lomo de Pollo", precio=12000,
-                      descripcion="Pan casero, pechuga de pollo grillada, queso tybo, huevo, tomate y lechuga."),
-        MenuLomiteria(nombre="Lomo Veggie", precio=11500,
-                      descripcion="Pan integral, medallón de lentejas, queso, palta, rúcula, tomate y huevo."),
+        menu_items = [
+            # --- LOMITOS ---
+            MenuLomiteria(nombre="Lomo Completo", precio=14500,
+                          descripcion="Pan casero, bife de lomo tierno, huevo, queso tybo, jamón cocido, lechuga, tomate y mayonesa casera. Con papas."),
+            MenuLomiteria(nombre="Lomo Árabe", precio=13800,
+                          descripcion="Pan árabe tostado, carne vacuna en tiritas, tomate, lechuga, salsa criolla y mayonesa de ajo."),
+            MenuLomiteria(nombre="Lomo de Pollo", precio=12500,
+                          descripcion="Pan casero, pechuga de pollo grillada, queso, huevo, tomate, lechuga y salsa suave."),
+            MenuLomiteria(nombre="Lomo Veggie", precio=11500,
+                          descripcion="Pan integral, medallón de lentejas y arroz yamaní, queso, palta, rúcula, tomate y huevo."),
+            MenuLomiteria(nombre="Lomo La Bestia (Doble)", precio=19000,
+                          descripcion="Doble carne, doble queso, doble huevo, panceta crocante y barbacoa."),
 
-        # --- PIZZAS (5 gustos) ---
-        MenuLomiteria(nombre="Pizza Muzzarella", precio=9000,
-                      descripcion="Salsa de tomate, doble muzzarella, orégano y aceitunas verdes."),
-        MenuLomiteria(nombre="Pizza Especial", precio=11000,
-                      descripcion="Muzzarella, jamón cocido, morrones asados y huevo duro."),
-        MenuLomiteria(nombre="Pizza Rúcula y Crudo", precio=12500,
-                      descripcion="Base de muzzarella, jamón crudo, rúcula fresca y parmesano."),
-        MenuLomiteria(nombre="Pizza Calabresa", precio=10500,
-                      descripcion="Muzzarella y rodajas de longaniza calabresa picante."),
-        MenuLomiteria(nombre="Pizza Fugazzeta", precio=10000,
-                      descripcion="Masa media, mucha cebolla, queso muzzarella y un toque de parmesano gratinado."),
+            # --- HAMBURGUESAS ---
+            MenuLomiteria(nombre="Hamburguesa Clásica", precio=9500,
+                          descripcion="Medallón 180g, lechuga, tomate, queso cheddar."),
+            MenuLomiteria(nombre="Hamburguesa Americana", precio=11000,
+                          descripcion="Medallón 180g, cheddar, panceta, cebolla caramelizada y barbacoa."),
 
-        # --- EMPANADAS ---
-        MenuLomiteria(nombre="Empanada Carne Suave", precio=1200,
-                      descripcion="Carne molida especial, cebolla, huevo y aceituna. Frita o al horno."),
-        MenuLomiteria(nombre="Empanada Carne Picante", precio=1200,
-                      descripcion="Cortada a cuchillo, con ají molido y pimentón."),
-        MenuLomiteria(nombre="Empanada Jamón y Queso", precio=1200, descripcion="Clásica de jamón y muzzarella."),
-        MenuLomiteria(nombre="Empanada Pollo", precio=1200, descripcion="Pollo desmenuzado con salsa blanca y verdeo."),
-        # Packs para facilitar la venta
-        MenuLomiteria(nombre="Docena de Empanadas (Surtidas)", precio=12000,
-                      descripcion="12 empanadas a elección (ahorrás el precio de 2)."),
-        MenuLomiteria(nombre="Media Docena Empanadas", precio=6500, descripcion="6 empanadas a elección."),
+            # --- PIZZAS ---
+            MenuLomiteria(nombre="Pizza Muzzarella", precio=9200,
+                          descripcion="Salsa de tomate, doble muzzarella, orégano y aceitunas."),
+            MenuLomiteria(nombre="Pizza Especial", precio=11500,
+                          descripcion="Muzzarella, jamón cocido natural, morrones asados y huevo duro."),
+            MenuLomiteria(nombre="Pizza Rúcula y Crudo", precio=13000,
+                          descripcion="Muzzarella, jamón crudo estacionado, rúcula fresca y hebras de parmesano."),
+            MenuLomiteria(nombre="Pizza Calabresa", precio=10800,
+                          descripcion="Muzzarella y rodajas de longaniza calabresa picante."),
+            MenuLomiteria(nombre="Pizza Fugazzeta", precio=10500,
+                          descripcion="Masa media, mucha cebolla, queso muzzarella y oliva."),
+            MenuLomiteria(nombre="Pizza Napolitana", precio=11200,
+                          descripcion="Muzzarella, rodajas de tomate fresco, ajo y perejil."),
 
-        # --- BEBIDAS ---
-        MenuLomiteria(nombre="Coca Cola 1.5L", precio=3500, descripcion="Botella descartable."),
-        MenuLomiteria(nombre="Cerveza Andes Rubia 1L", precio=4500,
-                      descripcion="Botella retornable (te cobramos el envase si no tenés)."),
-        MenuLomiteria(nombre="Agua Sin Gas 500ml", precio=1500, descripcion="Botella personal."),
+            # --- EMPANADAS ---
+            MenuLomiteria(nombre="Empanada Carne Suave", precio=1300,
+                          descripcion="Carne molida especial, cebolla, huevo y aceituna."),
+            MenuLomiteria(nombre="Empanada Carne Picante", precio=1300,
+                          descripcion="Cortada a cuchillo, con ají molido y pimentón de la vera."),
+            MenuLomiteria(nombre="Empanada Jamón y Queso", precio=1300, descripcion="Clásica de jamón y muzzarella."),
+            MenuLomiteria(nombre="Empanada Pollo", precio=1300,
+                          descripcion="Pollo desmenuzado con salsa blanca y verdeo."),
+            MenuLomiteria(nombre="Empanada Árabe", precio=1300,
+                          descripcion="Carne macerada en limón, cebolla y tomate."),
 
-        # --- PROMOCIONES ---
-        MenuLomiteria(nombre="Promo Pareja", precio=26000,
-                      descripcion="2 Lomos Completos + 1 Coca Cola 1.5L + Porción extra de papas."),
-        MenuLomiteria(nombre="Promo Pizza Party", precio=18000,
-                      descripcion="1 Pizza Especial + 1 Pizza Muzza + 1 Cerveza 1L.")
-    ]
+            # Packs Empanadas
+            MenuLomiteria(nombre="Docena de Empanadas", precio=13000,
+                          descripcion="12 unidades a elección (Ahorrás $2600)."),
+            MenuLomiteria(nombre="Media Docena Empanadas", precio=7000, descripcion="6 unidades a elección."),
 
-    db.add_all(menu_items)
-    db.commit()
+            # --- BEBIDAS ---
+            MenuLomiteria(nombre="Coca Cola 1.5L", precio=3800, descripcion="Botella descartable."),
+            MenuLomiteria(nombre="Sprite 1.5L", precio=3800, descripcion="Botella descartable."),
+            MenuLomiteria(nombre="Agua Sin Gas 1.5L", precio=2500, descripcion="Botella grande."),
+            MenuLomiteria(nombre="Cerveza Andes Rubia 1L", precio=4800, descripcion="Retornable."),
+            MenuLomiteria(nombre="Cerveza Andes Roja 1L", precio=4800, descripcion="Retornable."),
+            MenuLomiteria(nombre="Lata Coca Cola 354ml", precio=1800, descripcion="Lata fría."),
 
-    # ==========================================
-    # 2. CARGA DE CLIENTES DE PRUEBA
-    # ==========================================
-    print("👥 Creando Clientes Ficticios...")
+            # --- POSTRES ---
+            MenuLomiteria(nombre="Helado 1KG", precio=8500,
+                          descripcion="4 gustos a elección (Vainilla, Chocolate, Dulce de Leche, Frutilla)."),
+            MenuLomiteria(nombre="Flan Casero", precio=2500, descripcion="Con dulce de leche o crema."),
 
-    # Cliente Lomitería
-    c_lomi1 = ClienteLomiteria(ig_id="123456789", nombre="Juan Perez", telefono="3511112222",
-                               direccion="Av. Colon 1200")
-    c_lomi2 = ClienteLomiteria(ig_id="987654321", nombre="Maria Garcia", telefono="3513334444",
-                               direccion="Chacabuco 500")
+            # --- PROMOCIONES ---
+            MenuLomiteria(nombre="Promo Pareja", precio=28000,
+                          descripcion="2 Lomos Completos + 1 Coca 1.5L + Papas Extra."),
+            MenuLomiteria(nombre="Promo Pizza Party", precio=19500,
+                          descripcion="1 Pizza Especial + 1 Pizza Muzza + 1 Cerveza 1L."),
+            MenuLomiteria(nombre="Promo Mundial", precio=18000,
+                          descripcion="2 Hamburguesas Americanas + 2 Latas de Cerveza.")
+        ]
 
-    # Cliente Barbería
-    c_barber1 = ClienteBarberia(ig_id="111222333", nombre="Carlos Tevez", telefono="3515556666")
+        db.add_all(menu_items)
+        db.commit()
+        print(f"✅ {len(menu_items)} productos cargados.")
 
-    db.add_all([c_lomi1, c_lomi2, c_barber1])
-    db.commit()
+        # ==========================================
+        # 2. CARGA DE CLIENTES
+        # ==========================================
+        print("👥 Creando Clientes...")
 
-    # ==========================================
-    # 3. CARGA DE PEDIDOS HISTÓRICOS (LOMITERÍA)
-    # ==========================================
-    print("🛒 Generando Historial de Pedidos...")
+        # Clientes Lomitería
+        clientes_lomi = [
+            ClienteLomiteria(ig_id="1001", nombre="Juan Perez", telefono="351111111", direccion="Av. Colon 1000"),
+            ClienteLomiteria(ig_id="1002", nombre="Maria Garcia", telefono="351222222", direccion="Chacabuco 500, 3A"),
+            ClienteLomiteria(ig_id="1003", nombre="Pedro Gomez", telefono="351333333", direccion="Estrada 120"),
+        ]
+        db.add_all(clientes_lomi)
 
-    # Recuperamos los items para usarlos
-    lomo = db.query(MenuLomiteria).filter_by(nombre="Lomo Completo").first()
-    coca = db.query(MenuLomiteria).filter_by(nombre="Coca Cola 1.5L").first()
-    pizza = db.query(MenuLomiteria).filter_by(nombre="Pizza Rúcula y Crudo").first()
+        # Clientes Barbería
+        clientes_barber = [
+            ClienteBarberia(ig_id="2001", nombre="Carlos Tevez", telefono="351444444"),
+            ClienteBarberia(ig_id="2002", nombre="Lionel Messi", telefono="351555555"),
+            ClienteBarberia(ig_id="2003", nombre="Dibu Martinez", telefono="351666666"),
+        ]
+        db.add_all(clientes_barber)
+        db.commit()
 
-    # Pedido 1: Aprobado hace 2 días
-    pedido1 = PedidoLomiteria(
-        cliente_id=c_lomi1.id,
-        estado="aprobado",
-        total=(lomo.precio * 2) + coca.precio,
-        fecha=datetime.now() - timedelta(days=2),
-        mp_payment_link="https://mp.fake/paid"
-    )
-    db.add(pedido1)
-    db.commit()  # Necesitamos el ID del pedido
+        # ==========================================
+        # 3. HISTORIAL DE PEDIDOS (LOMITERÍA)
+        # ==========================================
+        print("🛒 Generando Historial de Pedidos...")
 
-    item1 = ItemPedidoLomiteria(pedido_id=pedido1.id, producto_id=lomo.id, cantidad=2, precio_unitario=lomo.precio,
-                                aclaraciones="Uno sin tomate")
-    item2 = ItemPedidoLomiteria(pedido_id=pedido1.id, producto_id=coca.id, cantidad=1, precio_unitario=coca.precio)
-    db.add_all([item1, item2])
+        # Recuperamos productos clave
+        lomo = db.query(MenuLomiteria).filter_by(nombre="Lomo Completo").first()
+        pizza = db.query(MenuLomiteria).filter_by(nombre="Pizza Muzzarella").first()
+        coca = db.query(MenuLomiteria).filter_by(nombre="Coca Cola 1.5L").first()
 
-    # Pedido 2: Carrito abierto (Pendiente)
-    pedido2 = PedidoLomiteria(
-        cliente_id=c_lomi2.id,
-        estado="carrito",
-        total=pizza.precio,
-        fecha=datetime.now()
-    )
-    db.add(pedido2)
-    db.commit()
+        # Pedido 1: Entregado (Hace 1 semana)
+        p1 = PedidoLomiteria(
+            cliente_id=clientes_lomi[0].id,
+            estado="entregado",
+            total=lomo.precio + coca.precio,
+            fecha=datetime.now() - timedelta(days=7),
+            mp_payment_link="link_pagado"
+        )
+        db.add(p1)
+        db.commit()
+        db.add_all([
+            ItemPedidoLomiteria(pedido_id=p1.id, producto_id=lomo.id, cantidad=1, precio_unitario=lomo.precio,
+                                aclaraciones="Sin mayonesa"),
+            ItemPedidoLomiteria(pedido_id=p1.id, producto_id=coca.id, cantidad=1, precio_unitario=coca.precio)
+        ])
 
-    item3 = ItemPedidoLomiteria(pedido_id=pedido2.id, producto_id=pizza.id, cantidad=1, precio_unitario=pizza.precio)
-    db.add(item3)
+        # Pedido 2: Carrito Abierto (Actual)
+        p2 = PedidoLomiteria(
+            cliente_id=clientes_lomi[1].id,
+            estado="carrito",
+            total=pizza.precio * 2,
+            fecha=datetime.now()
+        )
+        db.add(p2)
+        db.commit()
+        db.add(ItemPedidoLomiteria(pedido_id=p2.id, producto_id=pizza.id, cantidad=2, precio_unitario=pizza.precio))
 
-    db.commit()
+        # Pedido 3: Cancelado (Ayer)
+        p3 = PedidoLomiteria(
+            cliente_id=clientes_lomi[2].id,
+            estado="cancelado",
+            total=lomo.precio,
+            fecha=datetime.now() - timedelta(days=1)
+        )
+        db.add(p3)
+        db.commit()
 
-    # ==========================================
-    # 4. CARGA DE TURNOS HISTÓRICOS (BARBERÍA)
-    # ==========================================
-    print("💈 Generando Turnos de Prueba...")
+        # ==========================================
+        # 4. HISTORIAL Y AGENDA (BARBERÍA)
+        # ==========================================
+        print("💈 Generando Agenda de Barbería...")
 
-    turno1 = TurnoBarberia(
-        cliente_id=c_barber1.id,
-        fecha_hora=datetime.now() + timedelta(days=1, hours=2),  # Mañana
-        estado="activo",
-        google_event_id="evento_falso_google_123",
-        nota="Corte degradé"
-    )
-    db.add(turno1)
-    db.commit()
+        turnos = [
+            # Pasado (Historial)
+            TurnoBarberia(
+                cliente_id=clientes_barber[0].id,
+                fecha_hora=datetime.now() - timedelta(days=10, hours=2),
+                estado="completado",
+                google_event_id="evt_old_1",
+                nota="Corte clásico"
+            ),
+            # Futuro (Mañana 10:00)
+            TurnoBarberia(
+                cliente_id=clientes_barber[1].id,
+                fecha_hora=datetime.now().replace(hour=10, minute=0, second=0, microsecond=0) + timedelta(days=1),
+                estado="activo",
+                google_event_id="evt_future_1",
+                nota="Barba y Pelo"
+            ),
+            # Futuro (Pasado mañana 16:00)
+            TurnoBarberia(
+                cliente_id=clientes_barber[2].id,
+                fecha_hora=datetime.now().replace(hour=16, minute=0, second=0, microsecond=0) + timedelta(days=2),
+                estado="activo",
+                google_event_id="evt_future_2",
+                nota="Degradé"
+            )
+        ]
+        db.add_all(turnos)
+        db.commit()
 
-    print("✅ ¡Base de datos inicializada con éxito!")
-    print(f"   - {len(menu_items)} productos en el menú.")
-    print("   - Clientes y pedidos de prueba creados.")
-    db.close()
+        print("✨ BASE DE DATOS INICIALIZADA CORRECTAMENTE.")
+
+    except Exception as e:
+        print(f"❌ Error al inicializar DB: {e}")
+        db.rollback()
+    finally:
+        db.close()
 
 
 if __name__ == "__main__":
