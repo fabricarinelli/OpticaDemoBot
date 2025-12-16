@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str
     GOOGLE_APPLICATION_CREDENTIALS: str
     ADMIN_EMAIL: str
+    BARBER_CALENDAR_ID: str
 
     # Mercado Pago
     MP_ACCESS_TOKEN: str

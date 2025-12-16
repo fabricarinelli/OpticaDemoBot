@@ -3,7 +3,6 @@ import google.generativeai as genai
 from app.core.config import settings
 from app.services.tools import handle_tool_call
 
-# 1. Configuración Global de la API (esto sí queda fijo)
 genai.configure(api_key=settings.GEMINI_API_KEY)
 
 
