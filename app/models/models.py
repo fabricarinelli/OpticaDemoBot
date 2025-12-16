@@ -1,99 +1,73 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Float, Enum
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-import enum
-
-from sqlalchemy.sql.sqltypes import Text
-
 from app.core.database import Base
 
-# Enums para consistencia
-class ProfessionalType(str, enum.Enum):
-    OPTICO = "optico"
-    CONTACTOLOGO = "contactologo"
+class ClienteBarberia(Base):
+    __tablename__ = 'barberia_clientes'
 
-class OrderStatus(str, enum.Enum):
-    PENDING = "pending"
-    PAID = "paid"
-    SHIPPED = "shipped"
-
-class Client(Base):
-    __tablename__ = "clients"
-
-    id = Column(Integer, primary_key=True, index=True)
-    instagram_id = Column(String, unique=True, index=True, nullable=False)
-    name = Column(String, nullable=True)
-    phone = Column(String, nullable=True)
-    email = Column(String, nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    messages = relationship("Message", back_populates="client")
-    appointments = relationship("Appointment", back_populates="client")
-    orders = relationship("Order", back_populates="client")
-
-class Message(Base):
-    __tablename__ = "messages"
-
-    id = Column(Integer, primary_key=True, index=True)
-    client_id = Column(Integer, ForeignKey("clients.id"))
-    role = Column(String) # "user" o "assistant"
-    content = Column(Text) # El texto del mensaje
-    timestamp = Column(DateTime(timezone=True), server_default=func.now())
-
-    client = relationship("Client", back_populates="messages")
-
-class Professional(Base):
-    __tablename__ = "professionals"
-    
     id = Column(Integer, primary_key=True)
-    name = Column(String)
-    type = Column(Enum(ProfessionalType))
-    calendar_id = Column(String, unique=True, nullable=False)
-    appointments = relationship("Appointment", back_populates="professional")
+    ig_id = Column(String, unique=True, index=True)
+    nombre = Column(String)
+    telefono = Column(String)
+    turnos = relationship("TurnoBarberia", back_populates="cliente")
 
-class Appointment(Base):
-    __tablename__ = "appointments"
-    
-    id = Column(Integer, primary_key=True)
-    client_id = Column(Integer, ForeignKey("clients.id"))
-    professional_id = Column(Integer, ForeignKey("professionals.id"))
-    
-    start_time = Column(DateTime, index=True)
-    calendar_event_id = Column(String, nullable=True)
-    status = Column(String, default="confirmed")
-    client = relationship("Client", back_populates="appointments")
-    professional = relationship("Professional", back_populates="appointments")
 
-class Product(Base):
-    __tablename__ = "products"
-    
+class TurnoBarberia(Base):
+    __tablename__ = 'barberia_turnos'
     id = Column(Integer, primary_key=True)
-    name = Column(String, index=True)
-    description = Column(String)
-    price = Column(Float)
-    category = Column(String)
+    cliente_id = Column(Integer, ForeignKey('barberia_clientes.id'))
+    fecha_hora = Column(DateTime)  # La fecha del turno (Ej: 2025-12-15 10:00:00)
+    fecha_generacion = Column(DateTime, default=func.now())
+    nota = Column(String, nullable=True)
+    google_event_id = Column(String, unique=True)
+    estado = Column(String, default='activo')
+    cliente = relationship("ClienteBarberia", back_populates="turnos")
 
-class Order(Base):
-    __tablename__ = "orders"
-    
-    id = Column(Integer, primary_key=True)
-    client_id = Column(Integer, ForeignKey("clients.id"))
-    status = Column(Enum(OrderStatus), default=OrderStatus.PENDING)
-    total_amount = Column(Float, default=0.0)
-    payment_link = Column(String, nullable=True, index=True)
-    mp_reference_id = Column(String, unique=True, nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    
-    client = relationship("Client", back_populates="orders")
-    items = relationship("OrderItem", back_populates="order")
 
-class OrderItem(Base):
-    __tablename__ = "order_items"
-    
+class ClienteLomiteria(Base):
+    __tablename__ = 'lomiteria_clientes'
+
     id = Column(Integer, primary_key=True)
-    order_id = Column(Integer, ForeignKey("orders.id"))
-    product_id = Column(Integer, ForeignKey("products.id"))
-    quantity = Column(Integer, default=1)
-    unit_price = Column(Float)
-    
-    order = relationship("Order", back_populates="items")
-    product = relationship("Product")
+    ig_id = Column(String, unique=True, index=True)
+    nombre = Column(String)
+    telefono = Column(String)
+    direccion = Column(String, nullable=True)  # Para envíos
+
+    pedidos = relationship("PedidoLomiteria", back_populates="cliente")
+
+
+class MenuLomiteria(Base):
+    __tablename__ = 'lomiteria_menu'
+
+    id = Column(Integer, primary_key=True)
+    nombre = Column(String)
+    descripcion = Column(String)
+    precio = Column(Float)
+    activo = Column(Boolean, default=True)
+
+
+class PedidoLomiteria(Base):
+    __tablename__ = 'lomiteria_pedidos'
+
+    id = Column(Integer, primary_key=True)
+    cliente_id = Column(Integer, ForeignKey('lomiteria_clientes.id'))
+    fecha = Column(DateTime, default=func.now())
+    total = Column(Float, default=0.0)
+    estado = Column(String, default='pendiente')
+    mp_preference_id = Column(String, nullable=True)
+    mp_payment_link = Column(String, nullable=True)
+    cliente = relationship("ClienteLomiteria", back_populates="pedidos")
+    items = relationship("ItemPedidoLomiteria", back_populates="pedido")
+
+class ItemPedidoLomiteria(Base):
+    __tablename__ = 'lomiteria_items_pedido'
+
+    id = Column(Integer, primary_key=True)
+    pedido_id = Column(Integer, ForeignKey('lomiteria_pedidos.id'))
+    producto_id = Column(Integer, ForeignKey('lomiteria_menu.id'))
+    cantidad = Column(Integer, default=1)
+    precio_unitario = Column(Float)
+    aclaraciones = Column(String, nullable=True)
+    pedido = relationship("PedidoLomiteria", back_populates="items")
+    producto = relationship("MenuLomiteria")

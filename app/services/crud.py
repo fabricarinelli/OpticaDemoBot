@@ -1,7 +1,7 @@
 from typing import Any, Dict, Optional, Union, List, Type
 from sqlalchemy.orm import Session
-from app.models.models import Client, Order, OrderItem, Product, Appointment, Professional, OrderStatus
-
+from app.models.models import Client, Order, OrderItem, Product, Appointment, Professional, OrderStatus, Message
+from sqlalchemy import desc
 
 class CRUDBase:
     def __init__(self, model: Type):
@@ -101,7 +101,19 @@ class CRUDProfessional(CRUDBase):
             query = query.filter(self.model.name.ilike(f"%{name_filter}%"))
         return query.all()
 
+class CRUDMessage(CRUDBase):
+    def get_chat_history(self, db: Session, client_id: int, limit: int = 10):
+        """Obtiene los últimos mensajes ordenados cronológicamente para la IA"""
+        last_messages = db.query(self.model) \
+            .filter(self.model.client_id == client_id) \
+            .order_by(desc(self.model.id)) \
+            .limit(limit) \
+            .all()
+        # Invertimos para que queden antiguo -> nuevo
+        return last_messages[::-1]
+
 professional = CRUDProfessional(Professional)
 product = CRUDProduct(Product)
 order = CRUDOrder(Order)
 client = CRUDBase(Client)
+message = CRUDMessage(Message)
