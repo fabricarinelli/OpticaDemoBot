@@ -1,5 +1,7 @@
 # app/services/gemini.py
 import google.generativeai as genai
+from google.generativeai import GenerationConfig
+
 from app.core.config import settings
 from app.services.tools import handle_tool_call
 
@@ -23,10 +25,17 @@ def get_model(tools_schema: list, system_instruction: str):
     Crea una instancia del modelo Gemini configurada dinámicamente.
     Permite cambiar de personalidad (Barbería vs Lomitería) al vuelo.
     """
+    config = GenerationConfig(
+        temperature=0.2,  # Baja creatividad: Se apega a los hechos y fechas.
+        top_p=0.8,  # Núcleo de muestreo: elige las palabras más probables.
+        top_k=40,
+    )
+
     return genai.GenerativeModel(
-        model_name='gemini-2.0-flash',
+        model_name='gemini-2.5-flash',
         tools=[tools_schema] if tools_schema else None,
-        system_instruction=system_instruction
+        system_instruction=system_instruction,
+        generation_config=config
     )
 
 
