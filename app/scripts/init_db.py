@@ -1,104 +1,162 @@
 # app/scripts/init_db.py
+import sys
+import os
+import random
+from datetime import datetime, timedelta
+
+# Hack para importar app desde la carpeta scripts
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
 from app.core.database import Base, engine, SessionLocal
-from app.models.models import Professional, Product, ProfessionalType
+from app.models.models import (
+    MenuLomiteria, ClienteLomiteria, PedidoLomiteria, ItemPedidoLomiteria,
+    ClienteBarberia, TurnoBarberia
+)
 
-# 1. Crear Tablas (si no existen)
-print("Creando tablas en la base de datos...")
-Base.metadata.create_all(bind=engine)
 
-db = SessionLocal()
+def init_db():
+    print("🔄 Reiniciando Base de Datos...")
 
-# --- PROFESIONALES ---
-# Verificamos si ya existen profesionales para no duplicarlos
-if not db.query(Professional).first():
-    print("Insertando Profesionales...")
+    # Opcional: Eliminar tablas viejas para empezar limpio
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
 
-    p1 = Professional(
-        name="Lic. Juan (Óptico)",
-        type=ProfessionalType.OPTICO,
-        calendar_id="3a87428b88c7324f9d88872da1dfe966f4cfd759e337b7eb765f4f97d146f1e0@group.calendar.google.com"
-    )
-    p2 = Professional(
-        name="Lic. Daniela (Óptica)",
-        type=ProfessionalType.OPTICO,
-        calendar_id="4932e0a89f768d94c13eda80628ec690e04d4bbf21585eac15ec11be6a0edac2@group.calendar.google.com"
-    )
+    db = SessionLocal()
 
-    # Contactólogos (30 min)
-    p3 = Professional(
-        name="Dra. Malena (Contactóloga)",
-        type=ProfessionalType.CONTACTOLOGO,
-        calendar_id="80a63f7c91981f4b0a4e00944046aa27a3c4e232e1f32cc36358e70bdf4cecae@group.calendar.google.com"
-    )
-    p4 = Professional(
-        name="Dr. Roberto (Contactólogo)",
-        type=ProfessionalType.CONTACTOLOGO,
-        calendar_id="01044e93d895c54a1f14a1a00f85b4518582a15ba09a7c16efcc1facd8d1b374@group.calendar.google.com"
-    )
+    # ==========================================
+    # 1. CARGA DEL MENÚ LOMITERÍA
+    # ==========================================
+    print("🍔 Cargando Menú de Lomitería...")
 
-    db.add_all([p1, p2, p3, p4])
-    db.commit()
-    print("✅ Profesionales insertados.")
-else:
-    print("ℹ️ Los profesionales ya estaban cargados.")
+    menu_items = [
+        # --- LOMITOS ---
+        MenuLomiteria(nombre="Lomo Completo", precio=14000,
+                      descripcion="Pan casero, bife de lomo, huevo, queso, jamón, lechuga, tomate y mayonesa de la casa. Sale con papas."),
+        MenuLomiteria(nombre="Lomo Árabe", precio=13500,
+                      descripcion="Pan árabe tostado, carne vacuna en tiritas, tomate, lechuga, salsa criolla y mayonesa."),
+        MenuLomiteria(nombre="Lomo de Pollo", precio=12000,
+                      descripcion="Pan casero, pechuga de pollo grillada, queso tybo, huevo, tomate y lechuga."),
+        MenuLomiteria(nombre="Lomo Veggie", precio=11500,
+                      descripcion="Pan integral, medallón de lentejas, queso, palta, rúcula, tomate y huevo."),
 
-# --- PRODUCTOS ---
-# Si hay pocos productos (menos de 5), asumimos que falta el catálogo completo y lo cargamos.
-if db.query(Product).count() < 5:
-    print("Insertando Catálogo Extendido de Productos...")
+        # --- PIZZAS (5 gustos) ---
+        MenuLomiteria(nombre="Pizza Muzzarella", precio=9000,
+                      descripcion="Salsa de tomate, doble muzzarella, orégano y aceitunas verdes."),
+        MenuLomiteria(nombre="Pizza Especial", precio=11000,
+                      descripcion="Muzzarella, jamón cocido, morrones asados y huevo duro."),
+        MenuLomiteria(nombre="Pizza Rúcula y Crudo", precio=12500,
+                      descripcion="Base de muzzarella, jamón crudo, rúcula fresca y parmesano."),
+        MenuLomiteria(nombre="Pizza Calabresa", precio=10500,
+                      descripcion="Muzzarella y rodajas de longaniza calabresa picante."),
+        MenuLomiteria(nombre="Pizza Fugazzeta", precio=10000,
+                      descripcion="Masa media, mucha cebolla, queso muzzarella y un toque de parmesano gratinado."),
 
-    products_list = [
-        # --- LÍQUIDOS Y SOLUCIONES ---
-        Product(name="Liquido Renu 500ml", price=15000, category="liquidos",
-                description="Solución multipropósito para lentes blandas"),
-        Product(name="Liquido Opti-Free Express 355ml", price=18500, category="liquidos",
-                description="Desinfección prolongada Alcon"),
-        Product(name="Biotrue 300ml", price=22000, category="liquidos",
-                description="Inspirado en la biología de tus ojos"),
-        Product(name="Solución Salina 500ml", price=8000, category="liquidos",
-                description="Para enjuague de lentes de contacto"),
+        # --- EMPANADAS ---
+        MenuLomiteria(nombre="Empanada Carne Suave", precio=1200,
+                      descripcion="Carne molida especial, cebolla, huevo y aceituna. Frita o al horno."),
+        MenuLomiteria(nombre="Empanada Carne Picante", precio=1200,
+                      descripcion="Cortada a cuchillo, con ají molido y pimentón."),
+        MenuLomiteria(nombre="Empanada Jamón y Queso", precio=1200, descripcion="Clásica de jamón y muzzarella."),
+        MenuLomiteria(nombre="Empanada Pollo", precio=1200, descripcion="Pollo desmenuzado con salsa blanca y verdeo."),
+        # Packs para facilitar la venta
+        MenuLomiteria(nombre="Docena de Empanadas (Surtidas)", precio=12000,
+                      descripcion="12 empanadas a elección (ahorrás el precio de 2)."),
+        MenuLomiteria(nombre="Media Docena Empanadas", precio=6500, descripcion="6 empanadas a elección."),
 
-        # --- ANTEOJOS DE SOL ---
-        Product(name="RayBan Aviator Classic", price=180000, category="anteojos_sol",
-                description="G-15 Lens, Marco Dorado"),
-        Product(name="RayBan Wayfarer", price=175000, category="anteojos_sol", description="Negro Clásico, Polarizado"),
-        Product(name="Oakley Holbrook", price=210000, category="anteojos_sol",
-                description="Matte Black, Prizm Sapphire"),
-        Product(name="Vulk The Guardian", price=120000, category="anteojos_sol",
-                description="Estilo urbano, protección UV400"),
-        Product(name="Rusty Vicio", price=95000, category="anteojos_sol", description="Diseño envolvente deportivo"),
+        # --- BEBIDAS ---
+        MenuLomiteria(nombre="Coca Cola 1.5L", precio=3500, descripcion="Botella descartable."),
+        MenuLomiteria(nombre="Cerveza Andes Rubia 1L", precio=4500,
+                      descripcion="Botella retornable (te cobramos el envase si no tenés)."),
+        MenuLomiteria(nombre="Agua Sin Gas 500ml", precio=1500, descripcion="Botella personal."),
 
-        # --- ARMAZONES RECETA ---
-        Product(name="Armazón Vulk Harry", price=85000, category="armazones",
-                description="Acetato negro, formato redondo"),
-        Product(name="Armazón Reef Titanio", price=110000, category="armazones",
-                description="Ultraliviano, rectangular"),
-        Product(name="Armazón Infinit Love", price=92000, category="armazones",
-                description="Cat-eye moderno, varios colores"),
-
-        # --- LENTES DE CONTACTO (Cajas) ---
-        Product(name="Acuvue Oasys (Caja x6)", price=65000, category="lentes_contacto",
-                description="Reemplazo quincenal, con Hydraclear"),
-        Product(name="Air Optix HydraGlyde (Caja x6)", price=68000, category="lentes_contacto",
-                description="Reemplazo mensual, alta oxigenación"),
-        Product(name="Dailies Total 1 (Caja x30)", price=95000, category="lentes_contacto",
-                description="Descartables diarios, comodidad superior"),
-
-        # --- ACCESORIOS ---
-        Product(name="Estuche Rígido Premium", price=8500, category="accesorios",
-                description="Interior afelpado, cierre magnético"),
-        Product(name="Gamuza Microfibra Grande", price=3000, category="accesorios",
-                description="Limpieza sin rayas 20x20cm"),
-        Product(name="Spray Limpiador y Antiempañante", price=6500, category="accesorios",
-                description="Spray 30ml para cristales"),
-        Product(name="Cadena Sujetadora Metal", price=4500, category="accesorios",
-                description="Cadena fina dorada o plateada"),
+        # --- PROMOCIONES ---
+        MenuLomiteria(nombre="Promo Pareja", precio=26000,
+                      descripcion="2 Lomos Completos + 1 Coca Cola 1.5L + Porción extra de papas."),
+        MenuLomiteria(nombre="Promo Pizza Party", precio=18000,
+                      descripcion="1 Pizza Especial + 1 Pizza Muzza + 1 Cerveza 1L.")
     ]
 
-    db.add_all(products_list)
+    db.add_all(menu_items)
     db.commit()
-    print("✅ ¡Catálogo de productos cargado exitosamente!")
-else:
-    print("ℹ️ El catálogo de productos ya contiene datos.")
 
-db.close()
+    # ==========================================
+    # 2. CARGA DE CLIENTES DE PRUEBA
+    # ==========================================
+    print("👥 Creando Clientes Ficticios...")
+
+    # Cliente Lomitería
+    c_lomi1 = ClienteLomiteria(ig_id="123456789", nombre="Juan Perez", telefono="3511112222",
+                               direccion="Av. Colon 1200")
+    c_lomi2 = ClienteLomiteria(ig_id="987654321", nombre="Maria Garcia", telefono="3513334444",
+                               direccion="Chacabuco 500")
+
+    # Cliente Barbería
+    c_barber1 = ClienteBarberia(ig_id="111222333", nombre="Carlos Tevez", telefono="3515556666")
+
+    db.add_all([c_lomi1, c_lomi2, c_barber1])
+    db.commit()
+
+    # ==========================================
+    # 3. CARGA DE PEDIDOS HISTÓRICOS (LOMITERÍA)
+    # ==========================================
+    print("🛒 Generando Historial de Pedidos...")
+
+    # Recuperamos los items para usarlos
+    lomo = db.query(MenuLomiteria).filter_by(nombre="Lomo Completo").first()
+    coca = db.query(MenuLomiteria).filter_by(nombre="Coca Cola 1.5L").first()
+    pizza = db.query(MenuLomiteria).filter_by(nombre="Pizza Rúcula y Crudo").first()
+
+    # Pedido 1: Aprobado hace 2 días
+    pedido1 = PedidoLomiteria(
+        cliente_id=c_lomi1.id,
+        estado="aprobado",
+        total=(lomo.precio * 2) + coca.precio,
+        fecha=datetime.now() - timedelta(days=2),
+        mp_payment_link="https://mp.fake/paid"
+    )
+    db.add(pedido1)
+    db.commit()  # Necesitamos el ID del pedido
+
+    item1 = ItemPedidoLomiteria(pedido_id=pedido1.id, producto_id=lomo.id, cantidad=2, precio_unitario=lomo.precio,
+                                aclaraciones="Uno sin tomate")
+    item2 = ItemPedidoLomiteria(pedido_id=pedido1.id, producto_id=coca.id, cantidad=1, precio_unitario=coca.precio)
+    db.add_all([item1, item2])
+
+    # Pedido 2: Carrito abierto (Pendiente)
+    pedido2 = PedidoLomiteria(
+        cliente_id=c_lomi2.id,
+        estado="carrito",
+        total=pizza.precio,
+        fecha=datetime.now()
+    )
+    db.add(pedido2)
+    db.commit()
+
+    item3 = ItemPedidoLomiteria(pedido_id=pedido2.id, producto_id=pizza.id, cantidad=1, precio_unitario=pizza.precio)
+    db.add(item3)
+
+    db.commit()
+
+    # ==========================================
+    # 4. CARGA DE TURNOS HISTÓRICOS (BARBERÍA)
+    # ==========================================
+    print("💈 Generando Turnos de Prueba...")
+
+    turno1 = TurnoBarberia(
+        cliente_id=c_barber1.id,
+        fecha_hora=datetime.now() + timedelta(days=1, hours=2),  # Mañana
+        estado="activo",
+        google_event_id="evento_falso_google_123",
+        nota="Corte degradé"
+    )
+    db.add(turno1)
+    db.commit()
+
+    print("✅ ¡Base de datos inicializada con éxito!")
+    print(f"   - {len(menu_items)} productos en el menú.")
+    print("   - Clientes y pedidos de prueba creados.")
+    db.close()
+
+
+if __name__ == "__main__":
+    init_db()

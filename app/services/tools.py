@@ -5,7 +5,7 @@ from typing import List, Dict, Any
 
 from app.core.database import SessionLocal
 from app.core.config import settings
-from app.models.models import Professional, Appointment, Client, Order, Product, OrderStatus
+#from app.models.models import Professional, Appointment, Client, Order, Product, OrderStatus
 from app.services import crud
 from app.services import calendar, payments, instagram
 
